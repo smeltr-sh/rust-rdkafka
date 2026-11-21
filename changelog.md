@@ -6,6 +6,40 @@ See also the [rdkafka-sys changelog](rdkafka-sys/changelog.md).
 
 None
 
+## 0.40.0 (2026-11-21)
+
+* Add `Client::sasl_set_credentials` for live SASL PLAIN/SCRAM credential
+  rotation ([#852]).
+* Round a partial millisecond of a timeout up, not down, when passing it to
+  librdkafka. A remainder below 1 ms became 0 ms, so `BaseProducer::poll` and
+  `BaseConsumer::poll` busy-looped through the last millisecond of every call.
+  An idle `ThreadedProducer` or `FutureProducer` cost about 1% of a CPU core
+  ([#867]).
+* Fix producers calling `ClientContext::error` twice per error event ([#861]).
+* Implement `fmt::Debug` for `BaseConsumer` and `BaseProducer`, and migrate
+  the integration test suite to TestContainers ([#798]).
+* Clarify `+1` offset semantics in `Consumer::store_offset*` docs ([#851]).
+* Bump `rdkafka-sys` to `4.11.0+2.16.0` (updating bundled librdkafka to 2.16.0).
+
+[#798]: https://github.com/fede1024/rust-rdkafka/pull/798
+[#851]: https://github.com/fede1024/rust-rdkafka/pull/851
+[#852]: https://github.com/fede1024/rust-rdkafka/pull/852
+[#861]: https://github.com/fede1024/rust-rdkafka/pull/861
+[#867]: https://github.com/fede1024/rust-rdkafka/pull/867
+
+## 0.39.0 (2026-01-25)
+
+* Fix the char zero ending in native config ([#706]).
+* Implement FromIterator for TopicPartitionList ([#795]).
+* Sanitize ClientConfig and AdminClient debugging ([#796]).
+* Handle null characters in topic in BaseProducer::send ([#782]).
+* Bump rdkafka-sys.
+
+[#706]: https://github.com/fede1024/rust-rdkafka/pull/706
+[#795]: https://github.com/fede1024/rust-rdkafka/pull/795
+[#796]: https://github.com/fede1024/rust-rdkafka/pull/796
+[#782]: https://github.com/fede1024/rust-rdkafka/pull/782
+
 ## 0.38.0 (2025-07-05)
 
 * Update `BaseProducer::poll` to not return early, and instead continue
