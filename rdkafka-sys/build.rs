@@ -275,14 +275,19 @@ fn build_librdkafka() {
         config.register_dep("openssl");
         // openssl-sys over AWS-LC names AWS-LC's headers but no root, so CMake would find the host's OpenSSL
         // instead. openssl-sys links AWS-LC itself, so the libraries CMake is given only complete its find.
+        // FindOpenSSL takes each library from a different cache variable per platform (on MSVC the EAY ones,
+        // which overwrite OPENSSL_*_LIBRARY), so every one of them names the stub.
         if env::var("DEP_OPENSSL_AWSLC").is_ok() {
             let include = env::var("DEP_OPENSSL_INCLUDE").expect("openssl-sys names AWS-LC's include directory");
             let stubs = Path::new(&env::var("OUT_DIR").unwrap()).join("awslc-stubs");
             fs::create_dir_all(&stubs).unwrap();
-            for lib in ["crypto", "ssl"] {
+            for (lib, eay) in [("crypto", "LIB_EAY"), ("ssl", "SSL_EAY")] {
                 let path = stubs.join(format!("lib{lib}.a"));
                 fs::write(&path, b"!<arch>\n").unwrap();
-                config.define(format!("OPENSSL_{}_LIBRARY", lib.to_uppercase()), path);
+                config.define(format!("OPENSSL_{}_LIBRARY", lib.to_uppercase()), &path);
+                for var in [eay.to_string(), format!("{eay}_DEBUG"), format!("{eay}_RELEASE")] {
+                    config.define(var, &path);
+                }
             }
             config.define("OPENSSL_INCLUDE_DIR", include);
         }
